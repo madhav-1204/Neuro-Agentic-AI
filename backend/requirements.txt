@@ -1,0 +1,26 @@
+# Core ML
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.23.0
+pillow>=10.0.0
+opencv-python-headless>=4.9.0
+grad-cam>=1.5.0
+matplotlib>=3.8.0
+
+# Data & utilities
+pandas>=1.5.0
+tqdm>=4.65.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# LLM
+google-genai>=1.0.0
+
+# PDF generation
+fpdf2>=2.8.5
+
+# API
+fastapi==0.110.0
+uvicorn==0.29.0
+python-multipart==0.0.9
+`
