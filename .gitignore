@@ -4,6 +4,7 @@
 backend/app/__pycache__/
 backend/app/core/__pycache__/
 backend/app/config/__pycache__/
+backend/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -71,6 +72,7 @@ yarn-error.log*
 # Build output
 frontend/dist/
 frontend/build/
+frontend/node_modules/
 
 ####################################
 # IDE / Editor
@@ -90,3 +92,5 @@ Thumbs.db
 # Legacy / removed frameworks
 ####################################
 .streamlit
+
+
