@@ -1,16 +1,16 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Landing from "./pages/Landing";
-import Analyzer from "./pages/Analyzer";
-import "./index.css";
+import { useState } from "react";
+import Navbar from "./components/Navbar";
+import Hero from "./components/Hero";
+import DiagnosticHub from "./components/DiagnosticHub";
+import "./App.css";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/analyze" element={<Analyzer />} />
-      </Routes>
-    </Router>
+    <div className="app">
+      <Navbar />
+      <Hero />
+      <DiagnosticHub onResult={setResult} result={result} />
+    </div>
   );
 }
 
