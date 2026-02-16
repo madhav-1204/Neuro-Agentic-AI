@@ -1,58 +1,36 @@
 ####################################
 # Python
 ####################################
-backend/app/__pycache__/
-backend/app/core/__pycache__/
-backend/app/config/__pycache__/
-backend/__pycache__/
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
 
 # Virtual environments
-env/
 venv/
-ENV/
 .venv/
+env/
+ENV/
 
 # Packaging
 *.egg-info/
-dist/
 build/
+dist/
 
 ####################################
 # Backend runtime artifacts
 ####################################
 backend/uploads/
-backend/tmp/
 backend/output/
+backend/tmp/
 backend/logs/
 
-# PDFs & generated reports
-*.pdf
-
 ####################################
-# ML / AI
+# ML Models (Do NOT commit weights)
 ####################################
-# Model weights (too large for git)
 backend/models/*.pth
 backend/models/*.pt
 backend/models/*.bin
-
-# Torch / HuggingFace cache
-.cache/
-torch_cache/
-
-####################################
-# Data & images
-####################################
-*.jpg
-*.jpeg
-*.png
-*.dcm
-sample_images/
-data/
 
 ####################################
 # Environment variables
@@ -62,35 +40,20 @@ data/
 !.env.example
 
 ####################################
-# Node / React (frontend)
+# Frontend / Node
 ####################################
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Build output
-frontend/dist/
-frontend/build/
 frontend/node_modules/
+frontend/dist/
+dist/
+
+# Logs
+*.log
+logs/
 
 ####################################
-# IDE / Editor
+# Editor / IDE
 ####################################
 .vscode/
 .idea/
-*.swp
-*.swo
 .DS_Store
-
-####################################
-# OS
-####################################
-Thumbs.db
-
-####################################
-# Legacy / removed frameworks
-####################################
-.streamlit
-
-

@@ -1,16 +1,16 @@
-import { useState } from "react";
-import UploadForm from "./components/UploadForm";
-import PredictionCard from "./components/PredictionCard";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Landing from "./pages/Landing";
+import Analyzer from "./pages/Analyzer";
+import "./index.css";
 
 function App() {
-  const [result, setResult] = useState(null);
-
   return (
-    <div style={{ padding: "40px", fontFamily: "Arial" }}>
-      <h1>Neuro Diagnosis AI</h1>
-      <UploadForm onResult={setResult} />
-      <PredictionCard result={result} />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/analyze" element={<Analyzer />} />
+      </Routes>
+    </Router>
   );
 }
 
