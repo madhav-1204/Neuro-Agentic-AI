@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import UploadForm from './UploadForm';
-import PredictionCard from './PredictionCard';
 
-export default function DiagnosticHub({ onResult, result }) {
+export default function DiagnosticHub({ onNavigate }) {
   const hubRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [activeSection, setActiveSection] = useState('upload');
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -49,8 +46,19 @@ export default function DiagnosticHub({ onResult, result }) {
     );
   };
 
-  const handleCardClick = (section) => {
-    setActiveSection(section);
+  const handleCardClick = (agentType) => {
+    // Animate card before navigation
+    gsap.to(`.${agentType}`, {
+      scale: 1.05,
+      duration: 0.2,
+      yoyo: true,
+      repeat: 1,
+      onComplete: () => {
+        if (onNavigate) {
+          onNavigate();
+        }
+      }
+    });
   };
 
   return (
@@ -65,27 +73,21 @@ export default function DiagnosticHub({ onResult, result }) {
 
       <div className="hub-grid">
         <div 
-          className={`data-intake-card ${activeSection === 'upload' ? 'active' : ''}`}
-          onClick={() => handleCardClick('upload')}
+          className="data-intake-card"
+          onClick={() => handleCardClick('data-intake-card')}
           style={{ cursor: 'pointer' }}
         >
           <div className="card-icon">📤</div>
           <h3>Data Intake</h3>
-          {activeSection === 'upload' ? (
-            <div className="upload-zone">
-              <UploadForm onResult={onResult} />
-            </div>
-          ) : (
-            <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
-              Click to upload MRI scans
-            </p>
-          )}
+          <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
+            Click to start neural analysis
+          </p>
         </div>
 
         <div className="agent-cards">
           <div 
-            className={`agent-card vision-agent ${activeSection === 'vision' ? 'active' : ''}`}
-            onClick={() => handleCardClick('vision')}
+            className="agent-card vision-agent"
+            onClick={() => handleCardClick('vision-agent')}
             style={{ cursor: 'pointer' }}
           >
             <div className="agent-icon">👁️</div>
@@ -97,8 +99,8 @@ export default function DiagnosticHub({ onResult, result }) {
           </div>
 
           <div 
-            className={`agent-card reasoning-agent ${activeSection === 'reasoning' ? 'active'  : ''}`}
-            onClick={() => handleCardClick('reasoning')}
+            className="agent-card reasoning-agent"
+            onClick={() => handleCardClick('reasoning-agent')}
             style={{ cursor: 'pointer' }}
           >
             <div className="agent-icon">🧠</div>
@@ -110,8 +112,8 @@ export default function DiagnosticHub({ onResult, result }) {
           </div>
 
           <div 
-            className={`agent-card report-agent ${activeSection === 'report' ? 'active' : ''}`}
-            onClick={() => handleCardClick('report')}
+            className="agent-card report-agent"
+            onClick={() => handleCardClick('report-agent')}
             style={{ cursor: 'pointer' }}
           >
             <div className="agent-icon">📋</div>
@@ -123,12 +125,6 @@ export default function DiagnosticHub({ onResult, result }) {
           </div>
         </div>
       </div>
-
-      {result && (
-        <div className="results-container">
-          <PredictionCard result={result} />
-        </div>
-      )}
 
       <div className="hub-footer">
         <div className="status-badge">🔒 AES-256 COMPLIANT</div>

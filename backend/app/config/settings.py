@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # =========================
 # Paths
@@ -44,3 +47,16 @@ STD = [0.229, 0.224, 0.225]
 # =========================
 
 GEMINI_MODEL = "gemini-1.5-flash"
+
+# =========================
+# Authentication
+# =========================
+
+# JWT Settings
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+
+# Google OAuth Settings
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")

@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 
 export default function Hero() {
+  const navigate = useNavigate();
   const heroRef = useRef(null);
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
@@ -43,6 +45,10 @@ export default function Hero() {
     );
   }, []);
 
+  const handleStartAnalysis = () => {
+    navigate('/analysis');
+  };
+
   const scrollToDiagnostic = () => {
     const diagnosticSection = document.querySelector('.diagnostic-hub');
     if (diagnosticSection) {
@@ -66,11 +72,11 @@ export default function Hero() {
         </p>
 
         <div ref={ctaRef} className="hero-cta">
-          <button className="cta-btn cta-primary" onClick={scrollToDiagnostic}>
+          <button className="cta-btn cta-primary" onClick={handleStartAnalysis}>
             Start Neural Analysis →
           </button>
           <button className="cta-btn cta-secondary" onClick={scrollToDiagnostic}>
-            View Documentation
+            View Technology
           </button>
         </div>
       </div>

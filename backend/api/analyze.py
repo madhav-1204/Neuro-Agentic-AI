@@ -2,9 +2,12 @@ import os
 import uuid
 import shutil
 from fastapi import APIRouter, UploadFile, File
+from fastapi.responses import FileResponse
 from app.core.orchestrator import Orchestrator
+from app.services.pdf_service import PDFService
 
 router = APIRouter()
+pdf_service = PDFService()
 
 UPLOAD_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -78,3 +81,17 @@ def analyze_batch(files: list[UploadFile] = File(...)):
             os.remove(path)
 
     return {"results": results}
+
+
+@router.post("/analyze/download-pdf")
+def download_pdf(result: dict):
+    """Generate and download a PDF report from analysis results"""
+    try:
+        pdf_path = pdf_service.generate_single_scan_pdf(result)
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename=os.path.basename(pdf_path),
+        )
+    except Exception as e:
+        return {"error": f"Failed to generate PDF: {str(e)}"}
