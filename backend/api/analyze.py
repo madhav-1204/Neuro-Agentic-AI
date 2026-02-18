@@ -1,13 +1,16 @@
 import os
 import uuid
 import shutil
+import base64
 from fastapi import APIRouter, UploadFile, File
 from fastapi.responses import FileResponse
 from app.core.orchestrator import Orchestrator
+from app.core.claude_vision_agent import GeminiVisionAgent
 from app.services.pdf_service import PDFService
 
 router = APIRouter()
 pdf_service = PDFService()
+vision_agent = GeminiVisionAgent()
 
 UPLOAD_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -81,6 +84,54 @@ def analyze_batch(files: list[UploadFile] = File(...)):
             os.remove(path)
 
     return {"results": results}
+
+
+@router.post("/analyze/gemini")
+def analyze_with_gemini(file: UploadFile = File(...)):
+    """
+    Analyze a brain MRI using Gemini's vision API.
+    Returns structured tumor analysis with GradCAM regions.
+    """
+    path, original_name = save_upload(file)
+
+    try:
+        # Read image for base64 encoding to send back to frontend
+        with open(path, "rb") as f:
+            image_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+        ext = os.path.splitext(original_name)[1].lower()
+        media_map = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
+        media_type = media_map.get(ext, "image/jpeg")
+
+        # Run Gemini vision analysis
+        analysis = vision_agent.analyze(path)
+
+        if "error" in analysis:
+            return {"filename": original_name, "error": analysis["error"]}
+
+        return {
+            "filename": original_name,
+            "image": f"data:{media_type};base64,{image_b64}",
+            "analysis": analysis,
+        }
+    except Exception as e:
+        return {"filename": original_name, "error": str(e)}
+    finally:
+        os.remove(path)
+
+
+@router.post("/analyze/gemini/download-pdf")
+def download_gemini_pdf(result: dict):
+    """Generate and download a 3-page PDF report from Gemini analysis results"""
+    try:
+        pdf_path = pdf_service.generate_claude_report(result)
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename=os.path.basename(pdf_path),
+        )
+    except Exception as e:
+        return {"error": f"Failed to generate PDF: {str(e)}"}
 
 
 @router.post("/analyze/download-pdf")

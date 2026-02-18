@@ -12,6 +12,29 @@ export async function analyzeSingle(file) {
   return await response.json();
 }
 
+export async function analyzeWithGemini(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${BASE_URL}/analyze/gemini`, {
+    method: "POST",
+    body: formData,
+  });
+
+  return await response.json();
+}
+
+export async function downloadGeminiPDF(result) {
+  const response = await fetch(`${BASE_URL}/analyze/gemini/download-pdf`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(result),
+  });
+
+  if (!response.ok) throw new Error("Failed to generate PDF");
+  return await response.blob();
+}
+
 export async function analyzeBatch(files) {
   const formData = new FormData();
   files.forEach(file => {

@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 # =========================
 # Paths
@@ -46,7 +46,7 @@ STD = [0.229, 0.224, 0.225]
 # LLM
 # =========================
 
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 # =========================
 # Authentication
