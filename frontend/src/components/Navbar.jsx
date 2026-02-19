@@ -8,21 +8,36 @@ export default function Navbar() {
   const navRef = useRef(null);
   const { user, logout, isAuthenticated } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    gsap.fromTo(navRef.current,
-      {
-        y: -100,
-        opacity: 0
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        ease: 'power3.out'
+    // Start hidden
+    gsap.set(navRef.current, { y: -100, opacity: 0 });
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      if (scrollY > 80 && !visible) {
+        setVisible(true);
+        gsap.to(navRef.current, {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power3.out',
+        });
+      } else if (scrollY <= 80 && visible) {
+        setVisible(false);
+        gsap.to(navRef.current, {
+          y: -100,
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power3.in',
+        });
       }
-    );
-  }, []);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [visible]);
 
   return (
     <nav ref={navRef} className="navbar">

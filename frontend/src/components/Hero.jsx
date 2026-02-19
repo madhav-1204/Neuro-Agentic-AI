@@ -43,17 +43,16 @@ export default function Hero() {
       { scale: 0, opacity: 0 },
       { scale: 1, opacity: 1, duration: 0.5, stagger: 0.2 }
     );
+
+    return () => tl.kill();
   }, []);
 
   const handleStartAnalysis = () => {
     navigate('/analysis');
   };
 
-  const scrollToDiagnostic = () => {
-    const diagnosticSection = document.querySelector('.diagnostic-hub');
-    if (diagnosticSection) {
-      diagnosticSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  const goToTechnology = () => {
+    navigate('/technology');
   };
 
   return (
@@ -75,7 +74,7 @@ export default function Hero() {
           <button className="cta-btn cta-primary" onClick={handleStartAnalysis}>
             Start Neural Analysis →
           </button>
-          <button className="cta-btn cta-secondary" onClick={scrollToDiagnostic}>
+          <button className="cta-btn cta-secondary" onClick={goToTechnology}>
             View Technology
           </button>
         </div>

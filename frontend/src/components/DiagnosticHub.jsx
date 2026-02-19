@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
-export default function DiagnosticHub({ onNavigate }) {
+export default function DiagnosticHub({ onNavigate, onNavigateDC }) {
   const hubRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -54,7 +54,9 @@ export default function DiagnosticHub({ onNavigate }) {
       yoyo: true,
       repeat: 1,
       onComplete: () => {
-        if (onNavigate) {
+        if (agentType === 'dc-launch-card' && onNavigateDC) {
+          onNavigateDC();
+        } else if (onNavigate) {
           onNavigate();
         }
       }
@@ -81,6 +83,18 @@ export default function DiagnosticHub({ onNavigate }) {
           <h3>Data Intake</h3>
           <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
             Click to start neural analysis
+          </p>
+        </div>
+
+        <div 
+          className="data-intake-card dc-launch-card"
+          onClick={() => handleCardClick('dc-launch-card')}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="card-icon">🏥</div>
+          <h3>Diagnostic Center</h3>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
+            Batch analyze multiple patients
           </p>
         </div>
 

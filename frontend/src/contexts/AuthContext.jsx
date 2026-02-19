@@ -13,15 +13,22 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem("auth_user");
     
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch {
+        // Corrupted storage — clear it
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("auth_user");
+      }
     }
     setLoading(false);
   }, []);
 
   const login = async (googleCredential) => {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
     try {
-      const response = await fetch("http://localhost:8000/auth/google", {
+      const response = await fetch(`${apiUrl}/auth/google`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

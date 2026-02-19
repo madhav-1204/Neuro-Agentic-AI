@@ -1,7 +1,8 @@
+import logging
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -11,12 +12,12 @@ from app.config.settings import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     GOOGLE_CLIENT_ID,
 )
+from app.database import upsert_user, get_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
-security = HTTPBearer()
-
-# In-memory user storage (replace with database in production)
-users_db = {}
+security = HTTPBearer(auto_error=False)
 
 
 class GoogleTokenRequest(BaseModel):
@@ -38,26 +39,44 @@ class UserInfo(BaseModel):
 def create_access_token(data: dict, expires_delta: timedelta = None):
     """Create JWT access token"""
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verify JWT token"""
+    """Verify JWT token — raises 401 if missing or invalid."""
+    if credentials is None:
+        raise HTTPException(status_code=401, detail="Authentication required")
     token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        # Verify user still exists in DB
+        user = get_user(email)
+        if not user:
+            raise HTTPException(status_code=401, detail="User no longer exists")
         return payload
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+
+
+def verify_token_optional(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    """Verify JWT if present; returns payload or None for anonymous access."""
+    if credentials is None:
+        return None
+    try:
+        payload = jwt.decode(token=credentials.credentials, key=SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
 
 
 @router.post("/google", response_model=TokenResponse)
@@ -77,14 +96,15 @@ async def google_auth(token_request: GoogleTokenRequest):
         if not email:
             raise HTTPException(status_code=400, detail="Email not found in token")
 
-        # Store/update user in database
-        user_data = {"email": email, "name": name, "picture": picture}
-        users_db[email] = user_data
+        # Store/update user in SQLite database
+        user_data = upsert_user(email, name, picture)
 
         # Create JWT token
         access_token = create_access_token(
             data={"sub": email, "name": name, "picture": picture}
         )
+
+        logger.info("User authenticated: %s", email)
 
         return TokenResponse(
             access_token=access_token,
@@ -92,8 +112,8 @@ async def google_auth(token_request: GoogleTokenRequest):
             user=user_data,
         )
 
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid Google token")
 
 
 @router.get("/me", response_model=UserInfo)
@@ -109,4 +129,5 @@ async def get_current_user(token_data: dict = Depends(verify_token)):
 @router.post("/logout")
 async def logout(token_data: dict = Depends(verify_token)):
     """Logout user (client should delete token)"""
+    logger.info("User logged out: %s", token_data.get("sub"))
     return {"message": "Successfully logged out"}
