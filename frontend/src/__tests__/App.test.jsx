@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import { AuthProvider } from "../contexts/AuthContext";
 import ErrorBoundary from "../components/ErrorBoundary";
 
 function ThrowingComponent() {

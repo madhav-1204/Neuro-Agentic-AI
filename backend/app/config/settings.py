@@ -59,32 +59,6 @@ MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "10"))
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 # =========================
-# Authentication
-# =========================
-
-# JWT Settings — SECRET_KEY MUST be set via environment variable in production
-_secret = os.getenv("SECRET_KEY", "")
-if not _secret or _secret == "your-secret-key-change-this-in-production":
-    logger.warning(
-        "\n" + "=" * 60
-        + "\n  WARNING: SECRET_KEY is not set or is using the default!\n"
-        + "  Set a strong SECRET_KEY environment variable for production.\n"
-        + "=" * 60
-    )
-    # Use a fallback for development only
-    _secret = "dev-only-insecure-key-change-me"
-SECRET_KEY = _secret
-
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
-
-# Google OAuth Settings
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-if not GOOGLE_CLIENT_ID:
-    logger.warning("GOOGLE_CLIENT_ID is not set. Google OAuth will not work.")
-
-# =========================
 # Database
 # =========================
 

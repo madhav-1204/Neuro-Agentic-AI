@@ -8,9 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - CORS_ORIGINS=http://localhost,http://localhost:80
     volumes:
       - ./backend/models:/app/models

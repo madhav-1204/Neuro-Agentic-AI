@@ -1,8 +1,7 @@
 """
-SQLite-backed user store and analysis audit trail.
+SQLite-backed analysis audit trail.
 
 Tables:
-  users           – Google-authenticated users
   analysis_history – log of every scan analysed (patient history / audit)
 """
 
@@ -42,20 +41,8 @@ def init_db():
     with get_db() as conn:
         conn.execute(
             """
-            CREATE TABLE IF NOT EXISTS users (
-                email       TEXT PRIMARY KEY,
-                name        TEXT,
-                picture     TEXT,
-                created_at  TEXT NOT NULL,
-                last_login  TEXT NOT NULL
-            )
-            """
-        )
-        conn.execute(
-            """
             CREATE TABLE IF NOT EXISTS analysis_history (
                 id            INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_email    TEXT,
                 patient_name  TEXT,
                 filename      TEXT NOT NULL,
                 tumor_type    TEXT,
@@ -63,50 +50,16 @@ def init_db():
                 region        TEXT,
                 grade         TEXT,
                 analysis_json TEXT,
-                created_at    TEXT NOT NULL,
-                FOREIGN KEY (user_email) REFERENCES users(email)
+                created_at    TEXT NOT NULL
             )
             """
         )
     logger.info("Database initialised at %s", DATABASE_PATH)
 
 
-# ── User helpers ────────────────────────────────────────────────────
-
-def upsert_user(email: str, name: str, picture: str) -> dict:
-    """Insert or update a user, returning the user dict."""
-    now = _now_iso()
-    with get_db() as conn:
-        existing = conn.execute(
-            "SELECT * FROM users WHERE email = ?", (email,)
-        ).fetchone()
-        if existing:
-            conn.execute(
-                "UPDATE users SET name=?, picture=?, last_login=? WHERE email=?",
-                (name, picture, now, email),
-            )
-        else:
-            conn.execute(
-                "INSERT INTO users (email, name, picture, created_at, last_login) VALUES (?,?,?,?,?)",
-                (email, name, picture, now, now),
-            )
-    return {"email": email, "name": name, "picture": picture}
-
-
-def get_user(email: str) -> dict | None:
-    with get_db() as conn:
-        row = conn.execute(
-            "SELECT * FROM users WHERE email = ?", (email,)
-        ).fetchone()
-        if row:
-            return dict(row)
-    return None
-
-
 # ── Analysis history helpers ────────────────────────────────────────
 
 def log_analysis(
-    user_email: str | None,
     patient_name: str,
     filename: str,
     analysis: dict,
@@ -123,26 +76,20 @@ def log_analysis(
         conn.execute(
             """
             INSERT INTO analysis_history
-                (user_email, patient_name, filename, tumor_type, confidence,
+                (patient_name, filename, tumor_type, confidence,
                  region, grade, analysis_json, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (user_email, patient_name, filename, tumor_type, confidence,
+            (patient_name, filename, tumor_type, confidence,
              region, grade, analysis_json, now),
         )
 
 
-def get_history(user_email: str | None = None, limit: int = 100) -> list[dict]:
-    """Retrieve analysis history, optionally filtered by user."""
+def get_history(limit: int = 100) -> list[dict]:
+    """Retrieve analysis history."""
     with get_db() as conn:
-        if user_email:
-            rows = conn.execute(
-                "SELECT * FROM analysis_history WHERE user_email = ? ORDER BY created_at DESC LIMIT ?",
-                (user_email, limit),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT * FROM analysis_history ORDER BY created_at DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
+        rows = conn.execute(
+            "SELECT * FROM analysis_history ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
     return [dict(r) for r in rows]

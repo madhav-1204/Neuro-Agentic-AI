@@ -4,14 +4,13 @@ import shutil
 import base64
 import asyncio
 import logging
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Request
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 from fastapi.responses import FileResponse
 from app.core.orchestrator import Orchestrator
 from app.core.gemini_vision_agent import GeminiVisionAgent
 from app.services.pdf_service import PDFService
 from app.config.settings import MAX_UPLOAD_SIZE_MB, ALLOWED_EXTENSIONS, MEDICAL_DISCLAIMER
 from app.database import log_analysis
-from api.auth import verify_token_optional
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +68,6 @@ def save_upload(file: UploadFile):
 @router.post("/analyze")
 async def analyze_single(
     file: UploadFile = File(...),
-    user=Depends(verify_token_optional),
 ):
     path, original_name = save_upload(file)
 
@@ -97,7 +95,6 @@ async def analyze_single(
 @router.post("/analyze/batch")
 async def analyze_batch(
     files: list[UploadFile] = File(...),
-    user=Depends(verify_token_optional),
 ):
     results = []
 
@@ -131,7 +128,6 @@ async def analyze_batch(
 @router.post("/analyze/gemini")
 async def analyze_with_gemini(
     file: UploadFile = File(...),
-    user=Depends(verify_token_optional),
 ):
     """
     Analyze a brain MRI using Gemini's vision API.
@@ -155,8 +151,7 @@ async def analyze_with_gemini(
             return {"filename": original_name, "error": analysis["error"]}
 
         # Audit trail
-        user_email = user.get("sub") if user else None
-        log_analysis(user_email, "", original_name, analysis)
+        log_analysis("", original_name, analysis)
 
         return {
             "filename": original_name,
@@ -175,7 +170,6 @@ async def analyze_with_gemini(
 @router.post("/analyze/gemini/batch")
 async def analyze_batch_gemini(
     files: list[UploadFile] = File(...),
-    user=Depends(verify_token_optional),
 ):
     """
     Analyze multiple MRI scans from different patients using Gemini Vision.
@@ -207,8 +201,7 @@ async def analyze_batch_gemini(
                 )
             else:
                 # Audit trail
-                user_email = user.get("sub") if user else None
-                log_analysis(user_email, "", original_name, analysis)
+                log_analysis("", original_name, analysis)
 
                 results.append(
                     {
@@ -260,11 +253,10 @@ async def download_pdf(result: dict):
 # ── History endpoint ────────────────────────────────────────────────
 
 @router.get("/analyze/history")
-async def get_analysis_history(user=Depends(verify_token_optional)):
-    """Return the analysis audit trail for the current user (or all if anonymous)."""
+async def get_analysis_history():
+    """Return the analysis audit trail."""
     from app.database import get_history
-    user_email = user.get("sub") if user else None
-    history = get_history(user_email=user_email)
+    history = get_history()
     # Strip the full analysis JSON to keep response small
     for h in history:
         h.pop("analysis_json", None)

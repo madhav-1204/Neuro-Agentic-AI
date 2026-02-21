@@ -4,7 +4,6 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from api.health import router as health_router
 from api.analyze import router as analyze_router
-from api.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -76,7 +75,6 @@ def on_startup():
 # ── Routers ─────────────────────────────────────────────────────────
 app.include_router(health_router)
 app.include_router(analyze_router)
-app.include_router(auth_router)
 
 
 @app.get("/")
