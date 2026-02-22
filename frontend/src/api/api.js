@@ -21,7 +21,13 @@ export async function analyzeWithGemini(file) {
     body: formData,
   });
 
-  return await response.json();
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.error || data?.detail || `Server error (${response.status})`);
+  }
+
+  return data;
 }
 
 export async function downloadGeminiPDF(result) {

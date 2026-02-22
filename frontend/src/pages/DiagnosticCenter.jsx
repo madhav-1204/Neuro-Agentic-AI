@@ -120,10 +120,14 @@ export default function DiagnosticCenter() {
       for (let fi = 0; fi < patient.files.length; fi++) {
         try {
           const res = await analyzeWithGemini(patient.files[fi]);
-          res.patientName = patient.name.trim();
-          results.push(res);
-        } catch {
-          results.push({ error: `Failed to analyze ${patient.files[fi].name}` });
+          if (res.error) {
+            results.push({ error: res.error, filename: res.filename || patient.files[fi].name });
+          } else {
+            res.patientName = patient.name.trim();
+            results.push(res);
+          }
+        } catch (err) {
+          results.push({ error: `Failed to analyze ${patient.files[fi].name}: ${err.message}` });
         }
 
         // Update progress
@@ -321,7 +325,7 @@ export default function DiagnosticCenter() {
               )}
 
               {/* Results for this patient */}
-              {patient.results.length > 0 && patient.status === "done" && (
+              {patient.results.length > 0 && (patient.status === "done" || patient.status === "error") && (
                 <div className="dc-results-section">
                   <div className="medical-disclaimer-banner">
                     ⚕️ <strong>Disclaimer:</strong> This AI-generated analysis is for informational purposes only and does not constitute a medical diagnosis. Always consult a qualified healthcare professional.
