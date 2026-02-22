@@ -2,6 +2,7 @@ from app.core.vision_agent import VisionAgent
 from app.core.explainability_agent import ExplainabilityAgent
 from app.core.reasoning_agent import ReasoningAgent
 from app.core.report_agent import ReportAgent
+from app.core.gemini_vision_agent import GeminiVisionAgent  # noqa: F401
 
 
 class Orchestrator:

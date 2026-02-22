@@ -1,10 +1,10 @@
 from datetime import datetime
-from app.config.settings import CLASS_NAMES
+from app.config.settings import CLASS_NAMES, MEDICAL_DISCLAIMER
 
 
 class ReportAgent:
     """
-    Generates text-based diagnostic reports
+    Generates text-based diagnostic reports with medical disclaimers
     """
 
     def generate_report(self, prediction, explanation):
@@ -22,5 +22,10 @@ Explanation:
 
 Classes:
 {', '.join(CLASS_NAMES)}
+
+{'=' * 60}
+IMPORTANT NOTICE
+{'=' * 60}
+{MEDICAL_DISCLAIMER}
 """
         return report
