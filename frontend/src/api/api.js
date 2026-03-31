@@ -4,41 +4,62 @@ export async function analyzeSingle(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${BASE_URL}/analyze`, {
-    method: "POST",
-    body: formData,
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/analyze`, {
+      method: "POST",
+      body: formData,
+    });
 
-  return await response.json();
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data?.error || data?.detail || `Server error (${response.status})`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    throw new Error(err.message || 'Failed to analyze');
+  }
 }
 
 export async function analyzeWithGemini(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${BASE_URL}/analyze/gemini`, {
-    method: "POST",
-    body: formData,
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/analyze/gemini`, {
+      method: "POST",
+      body: formData,
+    });
 
-  const data = await response.json();
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data?.error || data?.detail || `Server error (${response.status})`);
+    }
 
-  if (!response.ok) {
-    throw new Error(data?.error || data?.detail || `Server error (${response.status})`);
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    throw new Error(err.message || 'Network error or server unreachable');
   }
-
-  return data;
 }
 
 export async function downloadGeminiPDF(result) {
-  const response = await fetch(`${BASE_URL}/analyze/gemini/download-pdf`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(result),
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/analyze/gemini/download-pdf`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(result),
+    });
 
-  if (!response.ok) throw new Error("Failed to generate PDF");
-  return await response.blob();
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data?.error || data?.detail || `Server error (${response.status})`);
+    }
+    
+    return await response.blob();
+  } catch (err) {
+    throw new Error(err.message || 'Failed to generate PDF');
+  }
 }
 
 export async function analyzeBatch(files) {
@@ -47,12 +68,21 @@ export async function analyzeBatch(files) {
     formData.append("files", file);
   });
 
-  const response = await fetch(`${BASE_URL}/analyze/batch`, {
-    method: "POST",
-    body: formData,
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/analyze/batch`, {
+      method: "POST",
+      body: formData,
+    });
 
-  return await response.json();
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data?.error || data?.detail || `Server error (${response.status})`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    throw new Error(err.message || 'Batch analysis failed');
+  }
 }
 
 export async function analyzeBatchGemini(files) {
@@ -61,10 +91,19 @@ export async function analyzeBatchGemini(files) {
     formData.append("files", file);
   });
 
-  const response = await fetch(`${BASE_URL}/analyze/gemini/batch`, {
-    method: "POST",
-    body: formData,
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/analyze/gemini/batch`, {
+      method: "POST",
+      body: formData,
+    });
 
-  return await response.json();
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data?.error || data?.detail || `Server error (${response.status})`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    throw new Error(err.message || 'Batch analysis failed');
+  }
 }

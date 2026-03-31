@@ -11,16 +11,10 @@ import json
 import logging
 from datetime import datetime, timezone
 from contextlib import contextmanager
-
 from app.config.settings import DATABASE_PATH
-
 logger = logging.getLogger(__name__)
-
-
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
 @contextmanager
 def get_db():
     """Yields a sqlite3 connection; commits on success, rolls back on error."""

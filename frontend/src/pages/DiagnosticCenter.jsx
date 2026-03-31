@@ -85,11 +85,33 @@ export default function DiagnosticCenter() {
   };
 
   const handleFileChange = (id, e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+    const newFiles = Array.from(e.target.files);
+    if (newFiles.length === 0) return;
 
-    const previews = files.map((f) => URL.createObjectURL(f));
-    updatePatient(id, { files, previews, results: [], status: "pending" });
+    const newPreviews = newFiles.map((f) => URL.createObjectURL(f));
+    setPatients((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        const allFiles = [...p.files, ...newFiles];
+        const allPreviews = [...p.previews, ...newPreviews];
+        return { ...p, files: allFiles, previews: allPreviews, results: [], status: "pending" };
+      })
+    );
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+  };
+
+  const handleRemoveFile = (id, fileIndex) => {
+    setPatients((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        const newFiles = p.files.filter((_, i) => i !== fileIndex);
+        // Revoke the old preview URL to free memory
+        URL.revokeObjectURL(p.previews[fileIndex]);
+        const newPreviews = p.previews.filter((_, i) => i !== fileIndex);
+        return { ...p, files: newFiles, previews: newPreviews, results: [], status: "pending" };
+      })
+    );
   };
 
   const handleFileClick = (id) => {
@@ -139,15 +161,47 @@ export default function DiagnosticCenter() {
         );
       }
 
-      // Mark patient as done
-      const hasError = results.every((r) => r.error);
-      setPatients((prev) =>
-        prev.map((p) =>
-          p.id === patient.id
-            ? { ...p, status: hasError ? "error" : "done", results, progress: 100 }
-            : p
-        )
-      );
+      // Check for conflicting tumor types across successful results
+      const successfulResults = results.filter((r) => !r.error && r.analysis);
+      const tumorTypes = [...new Set(
+        successfulResults
+          .map((r) => r.analysis?.tumorType?.toLowerCase().trim())
+          .filter(Boolean)
+      )];
+
+      const hasConflict = tumorTypes.length > 1;
+      const allErrors = results.every((r) => r.error);
+
+      if (hasConflict) {
+        // Multiple different tumor types detected — flag as conflict error
+        const conflictMsg =
+          `Conflicting diagnoses detected for patient "${patient.name}": ` +
+          `the uploaded scans suggest ${tumorTypes.length} different tumor types ` +
+          `(${tumorTypes.join(", ")}). ` +
+          `Please verify the scans belong to the same patient and re-upload.`;
+        setPatients((prev) =>
+          prev.map((p) =>
+            p.id === patient.id
+              ? {
+                  ...p,
+                  status: "error",
+                  conflictError: conflictMsg,
+                  results: [],
+                  progress: 100,
+                }
+              : p
+          )
+        );
+      } else {
+        // No conflict — mark patient as done or error
+        setPatients((prev) =>
+          prev.map((p) =>
+            p.id === patient.id
+              ? { ...p, status: allErrors ? "error" : "done", results, progress: 100, conflictError: null }
+              : p
+          )
+        );
+      }
     }
 
     setGlobalLoading(false);
@@ -199,6 +253,23 @@ export default function DiagnosticCenter() {
     setAllDone(false);
     setGlobalLoading(false);
     setDownloading({});
+  };
+
+  // ── Re-upload for conflict patients ─────────────────────────
+
+  const handleReupload = (id) => {
+    updatePatient(id, {
+      files: [],
+      previews: [],
+      results: [],
+      status: "pending",
+      progress: 0,
+      conflictError: null,
+    });
+    // Reset allDone so the analyze button reappears
+    setAllDone(false);
+    // Open the file picker
+    setTimeout(() => handleFileClick(id), 100);
   };
 
   // ── Stats ────────────────────────────────────────────────────
@@ -294,9 +365,18 @@ export default function DiagnosticCenter() {
                     {patient.previews.length > 0 ? (
                       <div className="dc-preview-strip">
                         {patient.previews.map((url, i) => (
-                          <img key={i} src={url} alt={`Scan ${i + 1}`} className="dc-preview-thumb" />
+                          <div key={i} className="dc-preview-thumb-wrapper">
+                            <img src={url} alt={`Scan ${i + 1}`} className="dc-preview-thumb" />
+                            {!globalLoading && (
+                              <button
+                                className="dc-preview-remove-btn"
+                                onClick={(e) => { e.stopPropagation(); handleRemoveFile(patient.id, i); }}
+                                title="Remove this scan"
+                              >✕</button>
+                            )}
+                          </div>
                         ))}
-                        <span className="dc-file-count">{patient.files.length} file{patient.files.length > 1 ? "s" : ""}</span>
+                        <span className="dc-file-count">{patient.files.length} file{patient.files.length > 1 ? "s" : ""} — click to add more</span>
                       </div>
                     ) : (
                       <div className="dc-upload-placeholder">
@@ -310,6 +390,7 @@ export default function DiagnosticCenter() {
                       type="file"
                       multiple
                       accept="image/*"
+                      onClick={(e) => e.stopPropagation()}
                       onChange={(e) => handleFileChange(patient.id, e)}
                       style={{ display: "none" }}
                     />
@@ -321,6 +402,25 @@ export default function DiagnosticCenter() {
               {patient.status === "analyzing" && (
                 <div className="dc-progress-bar">
                   <div className="dc-progress-fill" style={{ width: `${patient.progress}%` }} />
+                </div>
+              )}
+
+              {/* Conflict error — multiple tumor types detected */}
+              {patient.conflictError && patient.status === "error" && (
+                <div className="dc-conflict-error">
+                  <div className="dc-conflict-icon">⚠️</div>
+                  <div className="dc-conflict-body">
+                    <strong>Multiple Tumor Types Detected</strong>
+                    <p>{patient.conflictError}</p>
+                  </div>
+                  {!globalLoading && (
+                    <button
+                      className="dc-reupload-btn"
+                      onClick={() => handleReupload(patient.id)}
+                    >
+                      🔄 Re-upload Scans
+                    </button>
+                  )}
                 </div>
               )}
 

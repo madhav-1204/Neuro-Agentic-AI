@@ -103,13 +103,21 @@ export default function AnalysisResult() {
   // ── Multi file handling ────────────────────────────────────────
 
   const handleMultiFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setMultiFiles(files);
-      setMultiPreviews(files.map((f) => URL.createObjectURL(f)));
+    const newFiles = Array.from(e.target.files);
+    if (newFiles.length > 0) {
+      setMultiFiles((prev) => [...prev, ...newFiles]);
+      setMultiPreviews((prev) => [...prev, ...newFiles.map((f) => URL.createObjectURL(f))]);
       setDuplicateTumorWarning(false);
       setMultiResults([]);
+      // Reset input so the same file can be re-selected
+      e.target.value = "";
     }
+  };
+
+  const handleRemoveMultiFile = (index) => {
+    URL.revokeObjectURL(multiPreviews[index]);
+    setMultiFiles((prev) => prev.filter((_, i) => i !== index));
+    setMultiPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleMultiBoxClick = () => {
@@ -343,13 +351,20 @@ export default function AnalysisResult() {
                       {multiPreviews.length > 0 && !loading ? (
                         <div className="multi-preview-grid">
                           {multiPreviews.map((url, i) => (
-                            <img
-                              key={i}
-                              src={url}
-                              alt={`MRI ${i + 1}`}
-                              className="multi-preview-img"
-                            />
+                            <div key={i} className="multi-preview-wrapper">
+                              <img
+                                src={url}
+                                alt={`MRI ${i + 1}`}
+                                className="multi-preview-img"
+                              />
+                              <button
+                                className="multi-preview-remove-btn"
+                                onClick={(e) => { e.stopPropagation(); handleRemoveMultiFile(i); }}
+                                title="Remove this scan"
+                              >✕</button>
+                            </div>
                           ))}
+                          <div className="multi-preview-add-hint">Click to add more</div>
                         </div>
                       ) : (
                         <>
@@ -375,6 +390,7 @@ export default function AnalysisResult() {
                         type="file"
                         multiple
                         onChange={handleMultiFileChange}
+                        onClick={(e) => e.stopPropagation()}
                         accept="image/*"
                         style={{ display: "none" }}
                       />

@@ -1058,6 +1058,48 @@ form button:disabled {
   border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
+.multi-preview-wrapper {
+  position: relative;
+}
+
+.multi-preview-remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.multi-preview-wrapper:hover .multi-preview-remove-btn {
+  opacity: 1;
+}
+
+.multi-preview-remove-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.15);
+}
+
+.multi-preview-add-hint {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #94a3b8);
+  padding-top: 0.25rem;
+}
+
 /* ============================================
    DUPLICATE TUMOR WARNING
    ============================================ */
@@ -1893,6 +1935,41 @@ form button:disabled {
   flex-shrink: 0;
 }
 
+.dc-preview-thumb-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dc-preview-remove-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  font-size: 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.dc-preview-thumb-wrapper:hover .dc-preview-remove-btn {
+  opacity: 1;
+}
+
+.dc-preview-remove-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.15);
+}
+
 .dc-file-count {
   font-size: 0.8rem;
   color: #A78BFA;
@@ -1916,6 +1993,69 @@ form button:disabled {
   border-radius: 2px;
   background: linear-gradient(90deg, #06B6D4, #8B5CF6, #EC4899);
   transition: width 0.4s ease;
+}
+
+/* Conflict error — multiple tumor types detected */
+.dc-conflict-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  animation: conflict-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes conflict-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.15); }
+  100% { box-shadow: 0 0 18px 2px rgba(239, 68, 68, 0.18); }
+}
+
+.dc-conflict-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.dc-conflict-body {
+  flex: 1;
+}
+
+.dc-conflict-body strong {
+  display: block;
+  color: #f87171;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.dc-conflict-body p {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.dc-reupload-btn {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.12);
+  color: #a78bfa;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.dc-reupload-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.7);
+  transform: translateY(-1px);
 }
 
 /* Results section inside patient card */

@@ -22,8 +22,6 @@ REASONING_PROMPT = (
     "Class probabilities: {prob_summary}\n\n"
     "Respond with ONLY the explanation text, no headers or formatting."
 )
-
-
 class ReasoningAgent:
     """
     Generates medical explanations using Gemini (if available),
